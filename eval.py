@@ -15,7 +15,8 @@ dev = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 
 test_loader = get_test_loaders(opt)
 
-path = 'weights/sunet-32.pt'   # the path of the model
+#path = 'weights/snunet-32.pt'   # the path of the model
+path = opt.pretrained_model_weight_dir+"snunet-32.pt"
 model = torch.load(path)
 
 c_matrix = {'tn': 0, 'fp': 0, 'fn': 0, 'tp': 0}

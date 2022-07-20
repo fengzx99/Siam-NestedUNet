@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="PublishConfigData" autoUpload="Always" serverName="fengzixuan@10.0.87.17:22" remoteFilesAllowedToDisappearOnAutoupload="false">
+    <serverData>
+      <paths name="fengzixuan@10.0.87.17:22">
+        <serverdata>
+          <mappings>
+            <mapping deploy="/home/fengzixuan/Project/Siam-NestedUNet" local="$PROJECT_DIR$" web="/" />
+          </mappings>
+        </serverdata>
+      </paths>
+    </serverData>
+    <option name="myAutoUpload" value="ALWAYS" />
+  </component>
+</project>

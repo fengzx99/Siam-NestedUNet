@@ -63,6 +63,7 @@ class RandomHorizontalFlip(object):
         return {'image': (img1, img2),
                 'label': mask}
 
+
 class RandomVerticalFlip(object):
     def __call__(self, sample):
         img1 = sample['image'][0]

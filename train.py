@@ -20,6 +20,7 @@ Initialize Parser and define arguments
 parser, metadata = get_parser_with_args()
 opt = parser.parse_args()
 
+pretrained_weights = os.listdir(opt.pretrained_model_weight_dir)
 """
 Initialize experiments log
 """
@@ -52,10 +53,15 @@ train_loader, val_loader = get_loaders(opt)
 Load Model then define other aspects of the model
 """
 logging.info('LOADING Model')
+#model = torch.load(opt.pretrained_model_weight_dir+pretrained_weights[0]).to(dev)
 model = load_model(opt, dev)
+## frozen siam-layers
+
+
 
 criterion = get_criterion(opt)
-optimizer = torch.optim.AdamW(model.parameters(), lr=opt.learning_rate) # Be careful when you adjust learning rate, you can refer to the linear scaling rule
+#optimizer = torch.optim.AdamW(model.parameters(), lr=opt.learning_rate)
+optimizer = torch.optim.AdamW(filter(lambda p:p.requires_grad, model.parameters()), lr=opt.learning_rate) # Be careful when you adjust learning rate, you can refer to the linear scaling rule
 scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=8, gamma=0.5)
 
 """
@@ -64,6 +70,7 @@ scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=8, gamma=0.5)
 best_metrics = {'cd_f1scores': -1, 'cd_recalls': -1, 'cd_precisions': -1}
 logging.info('STARTING training')
 total_step = -1
+es = 0
 
 for epoch in range(opt.epochs):
     train_metrics = initialize_metrics()
@@ -107,13 +114,14 @@ for epoch in range(opt.epochs):
         cd_train_report = prfs(labels.data.cpu().numpy().flatten(),
                                cd_preds.data.cpu().numpy().flatten(),
                                average='binary',
+                               zero_division=0,
                                pos_label=1)
 
         train_metrics = set_metrics(train_metrics,
                                     cd_loss,
                                     cd_corrects,
                                     cd_train_report,
-                                    scheduler.get_lr())
+                                    scheduler.get_last_lr())
 
         # log the batch mean metrics
         mean_train_metrics = get_mean_metrics(train_metrics)
@@ -154,13 +162,14 @@ for epoch in range(opt.epochs):
             cd_val_report = prfs(labels.data.cpu().numpy().flatten(),
                                  cd_preds.data.cpu().numpy().flatten(),
                                  average='binary',
+                                 zero_division=0,
                                  pos_label=1)
 
             val_metrics = set_metrics(val_metrics,
                                       cd_loss,
                                       cd_corrects,
                                       cd_val_report,
-                                      scheduler.get_lr())
+                                      scheduler.get_last_lr())
 
             # log the batch mean metrics
             mean_val_metrics = get_mean_metrics(val_metrics)
@@ -176,6 +185,7 @@ for epoch in range(opt.epochs):
         """
         Store the weights of good epochs based on validation results
         """
+
         if ((mean_val_metrics['cd_precisions'] > best_metrics['cd_precisions'])
                 or
                 (mean_val_metrics['cd_recalls'] > best_metrics['cd_recalls'])
@@ -196,8 +206,11 @@ for epoch in range(opt.epochs):
 
             # comet.log_asset(upload_metadata_file_path)
             best_metrics = mean_val_metrics
-
-
+            es = es//2
+        else:
+            es+=1
         print('An epoch finished.')
+        if es>10:
+            break
 writer.close()  # close tensor board
 print('Done!')

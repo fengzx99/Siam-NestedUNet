@@ -9,7 +9,9 @@
   "batch_size": 16,
   "learning_rate": 1e-3,
   "loss_function": "hybrid",
-  "dataset_dir": "../CDData/subset/",
+
+  "dataset_dir": "/home/fengzixuan/data/tiles_256/",
   "weight_dir": "./outputs/",
-  "log_dir": "./log/"
+  "log_dir": "./log/",
+  "pretrained_model_weight_dir": "/home/fengzixuan/data/SNUNet-CD/weights/"
 }
